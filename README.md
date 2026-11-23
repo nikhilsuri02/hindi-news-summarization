@@ -4,6 +4,8 @@ Automatic summarization of Hindi news articles, comparing four approaches: a TF-
 
 **Best result:** fine-tuned IndicBART, with a ROUGE-1 F-score of 0.554 and a BERTScore F1 of 0.797 on the held-out test set.
 
+**Live demo:** [try the custom Transformer in your browser](https://nikhilsuri02.github.io/hindi-news-summarization/). Paste a Hindi news article or pick an example. The model runs on your device with ONNX Runtime Web, so no server is involved.
+
 ## Approaches
 
 | Approach | Type | Notebook |
@@ -39,7 +41,7 @@ Scores on the test set, from [`Group5_Report.pdf`](Group5_Report.pdf):
 | ROUGE-L Recall | **0.626** | 0.405 | 0.300 |
 | ROUGE-L F-score | **0.506** | 0.429 | 0.318 |
 
-IndicBART had the best F-scores overall, mainly because of much higher recall. mT5 had slightly higher precision but lower recall. The custom Transformer, trained from scratch on about 20,000 examples, lagged well behind both pretrained models. The TF-IDF baseline is covered separately in section 7 of the report.
+IndicBART had the best F-scores overall, mainly because of much higher recall. mT5 had slightly higher precision but lower recall. The custom Transformer, trained from scratch on 15,000 of the training articles, lagged well behind both pretrained models. The TF-IDF baseline is covered separately in section 7 of the report.
 
 | IndicBART loss | mT5 loss | Custom Transformer loss |
 |---|---|---|
@@ -54,6 +56,8 @@ Codes and Models/
   MT5/                 notebook and fine-tuning config
   IndicBART/           notebooks for three fine-tuning runs, and model config
 Dataset/               test sets
+demo/                  script that exports the custom Transformer for the browser demo
+docs/                  the browser demo (GitHub Pages)
 NLP_Project_Images/    loss plots and sample outputs
 Group5_Report.pdf      full report: method, results and qualitative analysis
 Poster.pdf             project poster
@@ -61,12 +65,28 @@ Poster.pdf             project poster
 
 The trained custom Transformer is included (`my_model_transformer.keras`, `transformer.weights.h5`). The fine-tuned mT5 and IndicBART weights were too large for GitHub, so only their configuration files are here. Re-running the notebooks reproduces them.
 
+## Browser demo
+
+The [demo page](https://nikhilsuri02.github.io/hindi-news-summarization/) in `docs/` runs the custom Transformer entirely in the browser:
+
+- [`demo/export_web_model.py`](demo/export_web_model.py) converts the trained Keras weights into two ONNX graphs, an encoder and a decoder, with 16-bit weights (40 MB in total). It also exports the tokenizer vocabularies.
+- [`docs/preprocess.js`](docs/preprocess.js) is a JavaScript port of the notebook's text cleaning and Keras tokenizer.
+- The page writes the summary one word at a time with greedy decoding, the same way the notebook does. It also shows which words the model skipped because they are not in its vocabulary.
+
+Checks run before publishing:
+
+- The JavaScript preprocessing gives the same token IDs as the Python version for all 11,537 test texts: every article, summary and heading in `test.csv`, every article in `HindiNews_test.csv`, and a set of edge cases.
+- With 32-bit weights, the exported model reproduces the summaries saved in the notebook for 100 of 100 test articles. With the 16-bit weights used on the page, 93 of 100 are identical and the rest differ by a few words.
+- The browser and the Python export produce identical summaries for 100 of 100 test articles.
+
+Numbers must be spelled out with `indic-num2words` 1.2.2. Later versions spell some numbers differently from the training data, which changes what the model reads.
+
 ## Running the notebooks
 
 The notebooks were run on Kaggle and Google Colab. The mT5 and IndicBART fine-tuning needs a GPU. Install the main dependencies:
 
 ```bash
-pip install torch transformers tensorflow pandas rouge rouge-score bert-score nltk num-to-words emoji tqdm
+pip install torch transformers tensorflow pandas rouge rouge-score bert-score nltk indic-num2words==1.2.2 emoji tqdm
 ```
 
 Then download `hindi_train.csv` from ILSUM and update the `read_csv` paths at the top of each notebook (they point at `/kaggle/...` or `/content/...`).

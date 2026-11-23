@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hindi News Summarizer</title>
+  <meta name="description" content="A Transformer trained from scratch on Hindi news, running in your browser. Paste a Hindi article and get a short summary.">
+  <link rel="preload" href="fonts/tiro-devanagari-hindi-devanagari-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="masthead">
+    <div class="wrap">
+      <h1>Hindi news summarizer</h1>
+      <p class="hi-title" lang="hi">हिंदी समाचार सारांश</p>
+      <p class="lead">A Transformer trained from scratch on about 15,000 Hindi news articles. Paste an article and it writes a short summary. It runs entirely in your browser, so nothing you paste leaves this page.</p>
+    </div>
+  </header>
+
+  <main class="wrap workspace">
+    <section class="pane input-pane" aria-labelledby="article-heading">
+      <div class="pane-head">
+        <h2 id="article-heading">Article</h2>
+        <span class="count" id="word-count" aria-live="polite"></span>
+      </div>
+
+      <div class="examples" role="group" aria-label="Example articles from the test set">
+        <span class="examples-label">Try one from the test set:</span>
+        <div class="chips" id="examples"></div>
+      </div>
+
+      <label class="visually-hidden" for="article">Hindi news article</label>
+      <textarea id="article" lang="hi" spellcheck="false"
+        placeholder="यहाँ हिंदी समाचार लेख चिपकाएँ (paste a Hindi news article here)"></textarea>
+
+      <div class="actions">
+        <button id="run" type="button">Summarize</button>
+        <p class="status" id="status" role="status" aria-live="polite"></p>
+      </div>
+      <div class="progress" id="progress" hidden><span id="progress-bar"></span></div>
+    </section>
+
+    <section class="pane output-pane" aria-labelledby="summary-heading">
+      <div class="pane-head">
+        <h2 id="summary-heading">Summary</h2>
+        <a class="translate" id="translate" target="_blank" rel="noopener" hidden>Read it in English (Google Translate)</a>
+      </div>
+
+      <p class="empty" id="empty">The summary will appear here.</p>
+      <p class="summary" id="summary" lang="hi" hidden><span class="ink" id="summary-text"></span></p>
+      <p class="meta" id="meta" hidden></p>
+
+      <div class="reference" id="reference" hidden>
+        <h3>Reference summary from the dataset</h3>
+        <p lang="hi" id="reference-text"></p>
+      </div>
+
+      <div class="read" id="read" hidden>
+        <h3>What the model read</h3>
+        <p class="legend">Before reading, numbers are spelled out in Hindi and English words are removed, the same way the training data was prepared. <s>Crossed-out words</s> are not in its vocabulary, so it skips them. <span class="cut-sample">Faded words</span> come after its 300-word limit.</p>
+        <div class="tokens" id="tokens" lang="hi" tabindex="0" aria-label="Preprocessed article as the model read it"></div>
+      </div>
+    </section>
+  </main>
+
+  <section class="wrap about" aria-labelledby="about-heading">
+    <h2 id="about-heading">How it works</h2>
+    <div class="about-cols">
+      <div>
+        <p>The model is an encoder-decoder Transformer with 4 layers, 10 attention heads and 300-dimensional fastText Hindi word embeddings. It was trained on articles from the ILSUM 2023 dataset and writes the summary one word at a time, always choosing the most likely next word, up to 75 words.</p>
+        <p>For this page, the trained weights were exported to ONNX and run with ONNX Runtime Web. They are stored as 16-bit numbers to halve the download to 40 MB. Compared with the original model, this changes a few words in about 7 of every 100 test summaries.</p>
+      </div>
+      <div>
+        <p><strong>What it gets wrong.</strong> It was trained from scratch on a small dataset, so it often mixes up names and numbers, sometimes repeats itself, and only knows the most common words from its training articles. In the same project, a fine-tuned IndicBART did much better: a ROUGE-1 F-score of 0.55, against 0.39 for this model.</p>
+        <p><a href="https://github.com/nikhilsuri02/hindi-news-summarization">Code, report and full results on GitHub</a></p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="wrap foot">
+    <p>Built from a course project for CSE556 Natural Language Processing. Examples come from the ILSUM 2022 test set.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,2 @@
+Tiro Devanagari Hindi (Tiro Typeworks) and Mukta (Ek Type), from Fontsource 5.3.0.
+Both are licensed under the SIL Open Font License 1.1 (https://openfontlicense.org).
